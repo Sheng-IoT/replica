@@ -12,8 +12,8 @@ include(`modules/system.docker')dnl
 
 setdef(`__debootstrap_release__', `stable')dnl
 setdef(`__debootstrap_url__',     `http://deb.debian.org/debian/')dnl
-setdef(`__debootstrap_dinclude__', `gpg,dirmngr,debian-keyring,fancontrol,firmware-brcm80211,')dnl
-setdef(`__debootstrap_include__', `')dnl
+setdef(`__debootstrap_dinclude__', `gpg,dirmngr,debian-keyring,fancontrol,firmware-brcm80211,ca-certificates')dnl
+setdef(`__debootstrap_include__', `0')dnl
 
 setdef(`__kernel_remote__', `https://github.com/raspberrypi/linux.git')dnl
 setdef(`__kernel_branch__', `rpi-5.10.y')dnl
@@ -48,7 +48,7 @@ RUN __renv__ __rdistfiles__ __rccache__ \
         --no-merged-usr \
         --cache-dir=/var/cache/distfiles \
         --components="main,contrib,non-free" \
-        --include="__debootstrap_dinclude__ __debootstrap_include__"\
+        --include="__debootstrap_dinclude__"\
 ifdef(`__debootstrap_exclude__', `dnl
         --exclude="__debootstrap_exclude__" \
 ')dnl
@@ -62,7 +62,21 @@ RUN __renv__ __rdistfiles__ __rccache__ \
         ${SYSROOT}/etc/shadow && \
     mv -f /usr/src/boot/*         ${SYSROOT}/boot/ && \
     mv -f /usr/src/modules      ${SYSROOT}/lib/ && \
-    cp -f ${SYSROOT}/lib/systemd/resolv.conf ${SYSROOT}/etc/ && \
+    cp -f ${SYSROOT}/lib/systemd/resolv.conf ${SYSROOT}/etc/
+
+ifelse(index(__debootstrap_include__, `1'),0,`dnl
+COPY ./scripts/debian-rpi4/debian.packages ${SYSROOT}/packages
+COPY ./scripts/debian-rpi4/debian.sources ${SYSROOT}/sources
+RUN __renv__ __rdistfiles__ __rccache__ \
+    cat ${SYSROOT}/sources >> ${SYSROOT}/etc/apt/sources.list && \
+    grep -e "^[^#]" ${SYSROOT}/packages > ${SYSROOT}/packages_nc && \
+    cp -f /etc/resolv.conf ${SYSROOT}/etc/resolv.conf && \
+    chroot ${SYSROOT} apt-get --allow-unauthenticated update && \
+    chroot ${SYSROOT} xargs -a packages_nc apt-get install -y --allow-unauthenticated && \
+    rm ${SYSROOT}/packages ${SYSROOT}/packages_nc ${SYSROOT}/sources
+')dnl
+
+RUN __renv__ __rdistfiles__ __rccache__ \
     chroot ${SYSROOT} systemctl preset-all
 ')dnl
 

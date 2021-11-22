@@ -1,0 +1,23 @@
+# SPDX-License-Identifier: MIT
+#
+# Copyright (c) 2021 Sartura Ltd.
+#
+# Example
+#
+# Add additional packages
+
+# Source: Main Debian repo
+vim
+neofetch
+curl
+gnupg
+lsb-release
+iw
+curl
+gnupg
+lsb-release
+
+# Source: Docker repo
+docker-ce 
+docker-ce-cli 
+containerd.io

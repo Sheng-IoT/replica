@@ -1,0 +1,8 @@
+# SPDX-License-Identifier: MIT
+#
+# Copyright (c) 2021 Sartura Ltd.
+#
+# Example
+#
+# Add third party source
+deb [arch=arm64 trusted=yes] https://download.docker.com/linux/debian bullseye stable
